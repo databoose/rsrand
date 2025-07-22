@@ -13,8 +13,6 @@ use rand::random_bool;
 
 const UPDATE_RATE_MILLIS: u64 = 90;
 
-
-// we're just fucking around with lifetimes here for fun
 struct InputLabelGuard {
     original_label: Option<String>,
 }
@@ -26,14 +24,14 @@ impl InputLabelGuard {
         if let Some(label) = new_label {
             state.input_label_text = label;
         }
-
-        Self {
+        
+        InputLabelGuard {
             original_label: Some(original_label)
         }
     }
 
     fn restore(mut self, state: &mut State) {
-        if let Some(original) = self.original_label.take() {
+        if let Some(original) = self.original_label.take() { // if self.original_label.take() is Some(), then put it in original
             state.input_label_text = original;
         }
     }
@@ -161,7 +159,7 @@ fn main() {
                                     match input.trim().parse::<f64>() {
                                         Ok(value) => {
                                             let pvalue = value / 100.0;
-                                            state.push_message_output(format!("Hit: {}", random_bool(pvalue)));
+                                            state.push_message_output(format!("Hit: {}", rng.random_bool(pvalue)));
                                         }
                                         Err(error) => {
                                             state.push_message_output(format!("ERROR: {}", error));
