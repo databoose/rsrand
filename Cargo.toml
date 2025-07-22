@@ -1,0 +1,16 @@
+[package]
+name = "rsrand"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+crossterm = "0.29.0"
+rand = "0.9.1"
+ratatui = "0.29.0"
+cli-log = "2.1.0"
+
+[profile.release]
+lto = true
+debug = 0
+incremental = true
+opt-level = 3
