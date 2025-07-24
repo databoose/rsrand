@@ -169,33 +169,81 @@ fn main() {
                                     state.push_message_output("input cancelled".to_string());
                                 }
                             }
-                            2 => { // password generator
-                                let mut generated_password = String::new();
-                                let mut chartable: Vec<char> = vec![
-                                    'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
-                                    'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
-                                    '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-                                    '!', '"', '#', '$', '%', '&', '\'', '(', ')', '*', '+', ',', '-', '.', '/', ':', ';', '<', '=', '>', '?', '@', '[', '\\', ']', '^', '_', '`', '{', '|', '}', '~'
+                            2 => { // memorable password generator
+                                let words = vec![
+                                    "apple", "brave", "chair", "dance", "eagle", "flame", "grape", "house", "igloo", "juice", "sock", "broad", "mason",
+                                    "knife", "lemon", "magic", "night", "ocean", "piano", "queen", "river", "storm", "tiger", "missile", "jar", "smoke",
+                                    "uncle", "voice", "water", "xenon", "yacht", "zebra", "amber", "blaze", "crane", "drift", "talk", "walk", "sift",
+                                    "ember", "frost", "glory", "haven", "ivory", "jewel", "karma", "light", "misty", "noble", "bom", "rock", "tar",
+                                    "onyx", "pearl", "quill", "radiant", "solar", "thunder", "ultra", "velvet", "whisper", "cobble", "sort", "whistle", "save"
                                 ];
-                                chartable.shuffle(&mut rng);
-                                if let Some(input) = prompt_user_input(&mut terminal, &mut state, Some(String::from("Enter length of password"))) {
+                                
+                                let separators = vec!['!', '@', '#', '$', '%', '&', '*', '='];
+                                let numbers = vec!['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+                                
+                                if let Some(input) = prompt_user_input(&mut terminal, &mut state, Some(String::from("Enter complexity level (1-4)"))) {
                                     match input.trim().parse::<usize>() {
-                                        Ok(length) => {
-                                            if length > chartable.len() {
-                                                state.push_message_output(format!("You've entered a password length too long"));
-                                            } else {
-                                                for c in 0..length {
-                                                    generated_password.push(chartable[c]);
+                                        Ok(level) => {
+                                            let level = level.clamp(1, 4);
+                                            let mut password_parts = Vec::new();
+                                            
+                                            // select amount of random words based on complexity
+                                            let num_words = match level {
+                                                1 => 2,
+                                                2 => 3,
+                                                3 => 4,
+                                                4 => 5,
+                                                _ => 6,
+                                            };
+                                            
+                                            let mut word_indices: Vec<usize> = (0..words.len()).collect();
+                                            word_indices.shuffle(&mut rng);
+                                            
+                                            for i in 0..num_words {
+                                                let mut word = words[word_indices[i]].to_string();
+                                                // randomly capitalize some letters for additional complexity
+                                                if level > 1 && rng.random_bool(0.3) {
+                                                    let char_idx = rng.random_range(0..word.len());
+                                                    let mut chars: Vec<char> = word.chars().collect();
+                                                    if char_idx < chars.len() {
+                                                        chars[char_idx] = chars[char_idx].to_ascii_uppercase();
+                                                        word = chars.into_iter().collect();
+                                                    }
                                                 }
-                                                state.push_message_output(format!("randomized password: {}", generated_password));
+                                                password_parts.push(word);
                                             }
+
+                                            let mut sep_indices: Vec<usize> = (0..separators.len()).collect();
+                                            sep_indices.shuffle(&mut rng);
+                                            
+                                            for i in 0..(password_parts.len() - 1) {
+                                               // using modulo to cycle through seperators
+                                               state.push_message_output(i.to_string());
+                                               password_parts.insert(i * 2 + 1, separators[sep_indices[i % separators.len()]].to_string());
+                                            }
+                                            
+                                            if level > 2 {
+                                                let num_count = match level {
+                                                    2 => 1,
+                                                    3 => 2,
+                                                    _ => 3,
+                                                };
+                                                for _ in 0..num_count {
+                                                    let pos = rng.random_range(0..=password_parts.len());
+                                                    let num_idx = rng.random_range(0..numbers.len());
+                                                    password_parts.insert(pos, numbers[num_idx].to_string());
+                                                }
+                                            }
+                                            
+                                            let generated_password = password_parts.join("");
+                                            state.push_message_output(format!("password: {}", generated_password));
+                                            state.push_message_output(format!("length: {} characters", generated_password.len()));
                                         }
                                         Err(error) => {
                                             state.push_message_output(format!("ERROR: {}", error));
                                         }
                                     }
-                                }
-                                else {
+                                } else {
                                     state.push_message_output("input cancelled".to_string());
                                 }
                             }
