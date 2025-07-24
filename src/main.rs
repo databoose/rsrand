@@ -218,7 +218,7 @@ fn main() {
                                             
                                             for i in 0..(password_parts.len() - 1) {
                                                // using modulo to cycle through seperators
-                                               state.push_message_output(i.to_string());
+                                               // state.push_message_output(i.to_string());
                                                password_parts.insert(i * 2 + 1, separators[sep_indices[i % separators.len()]].to_string());
                                             }
                                             
