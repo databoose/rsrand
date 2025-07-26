@@ -1,4 +1,5 @@
 use crossterm::event::{self, Event, KeyCode};
+use rand::SeedableRng;
 use ratatui::{
     layout::{Constraint, Direction, Layout},
     prelude::{Stylize, Alignment},
@@ -7,9 +8,9 @@ use ratatui::{
     widgets::{Block, Borders, Paragraph, List, ListItem},
     Frame
 };
+use rand_chacha::ChaCha20Rng; // 20 round chacha, CSPRNG
 use std::{thread::{self}, time};
-use rand::{prelude::*, random_range};
-use rand::random_bool;
+use rand::{prelude::*};
 
 const UPDATE_RATE_MILLIS: u64 = 90;
 
@@ -87,7 +88,7 @@ impl State {
     }
 
     fn push_message_output(&mut self, msg: String) {
-        if self.output_widget_messages.len() > 16 {
+        if self.output_widget_messages.len() > 17 {
             self.output_widget_messages.clear();
         }
         self.output_widget_messages.push(msg);
@@ -136,7 +137,7 @@ fn main() {
     cli_log::init_cli_log!();
     let mut terminal = ratatui::init();
     let mut state: State = State::new();
-    let mut rng = rand::rng();
+    let mut rng = ChaCha20Rng::from_os_rng();
 
     loop {
         terminal.draw(|frame| draw(frame, &state)).expect("failed to draw frame");
@@ -160,6 +161,7 @@ fn main() {
                                         Ok(value) => {
                                             let pvalue = value / 100.0;
                                             state.push_message_output(format!("Hit: {}", rng.random_bool(pvalue)));
+                                            state.push_message_output(format!("{:?}", rng));
                                         }
                                         Err(error) => {
                                             state.push_message_output(format!("ERROR: {}", error));
@@ -172,9 +174,9 @@ fn main() {
                             2 => { // memorable password generator
                                 let words = vec![
                                     "apple", "brave", "chair", "dance", "eagle", "flame", "grape", "house", "igloo", "juice", "sock", "broad", "mason",
-                                    "knife", "lemon", "magic", "night", "ocean", "piano", "queen", "river", "storm", "tiger", "missile", "jar", "smoke",
-                                    "uncle", "voice", "water", "xenon", "yacht", "zebra", "amber", "blaze", "crane", "drift", "talk", "walk", "sift",
-                                    "ember", "frost", "glory", "haven", "ivory", "jewel", "karma", "light", "misty", "noble", "bom", "rock", "tar",
+                                    "knife", "lemon", "magic", "night", "ocean", "piano", "queen", "river", "storm", "tiger", "missile", "jar", "smoke", "triple",
+                                    "uncle", "voice", "water", "xenon", "yacht", "zebra", "amber", "blaze", "crane", "drift", "talk", "walk", "sift", "seek",
+                                    "ember", "frost", "glory", "haven", "ivory", "jewel", "karma", "light", "misty", "noble", "bom", "rock", "tar", "work",
                                     "onyx", "pearl", "quill", "radiant", "solar", "thunder", "ultra", "velvet", "whisper", "cobble", "sort", "whistle", "save"
                                 ];
                                 
@@ -206,6 +208,9 @@ fn main() {
                                                     let char_idx = rng.random_range(0..word.len());
                                                     let mut chars: Vec<char> = word.chars().collect();
                                                     if char_idx < chars.len() {
+                                                        if chars[char_idx] == 'i' || chars[char_idx] == 'l' {
+                                                            continue; // dont captialize "i" or "l" because they are difficult to distinguish, reduces entropy a little
+                                                        }
                                                         chars[char_idx] = chars[char_idx].to_ascii_uppercase();
                                                         word = chars.into_iter().collect();
                                                     }
@@ -237,7 +242,7 @@ fn main() {
                                             
                                             let generated_password = password_parts.join("");
                                             state.push_message_output(format!("password: {}", generated_password));
-                                            state.push_message_output(format!("length: {} characters", generated_password.len()));
+                                            //state.push_message_output(format!("length: {} characters", generated_password.len()));
                                         }
                                         Err(error) => {
                                             state.push_message_output(format!("ERROR: {}", error));
