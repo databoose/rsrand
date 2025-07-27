@@ -180,7 +180,7 @@ fn main() {
                                     "onyx", "pearl", "quill", "radiant", "solar", "thunder", "ultra", "velvet", "whisper", "cobble", "sort", "whistle", "save"
                                 ];
                                 
-                                let separators = vec!['!', '@', '#', '$', '%', '&', '*', '='];
+                                let separators = vec!['!', '@', '#', '$', '%', '&', '*', '=', '.', '/', '-'];
                                 let numbers = vec!['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
                                 
                                 if let Some(input) = prompt_user_input(&mut terminal, &mut state, Some(String::from("Enter complexity level (1-4)"))) {
@@ -227,7 +227,7 @@ fn main() {
                                                password_parts.insert(i * 2 + 1, separators[sep_indices[i % separators.len()]].to_string());
                                             }
                                             
-                                            if level > 2 {
+                                            if level >= 2 {
                                                 let num_count = match level {
                                                     2 => 1,
                                                     3 => 2,
