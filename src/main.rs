@@ -161,7 +161,6 @@ fn main() {
                                         Ok(value) => {
                                             let pvalue = value / 100.0;
                                             state.push_message_output(format!("Hit: {}", rng.random_bool(pvalue)));
-                                            state.push_message_output(format!("{:?}", rng));
                                         }
                                         Err(error) => {
                                             state.push_message_output(format!("ERROR: {}", error));
@@ -253,14 +252,33 @@ fn main() {
                                 }
                             }
                             3 => { // range randomization
-                                if let Some(input) = prompt_user_input(&mut terminal, &mut state, Some(String::from("Enter maximum number of range"))) {
-                                    match input.trim().parse::<u64>() {
-                                        Ok(max_int) => {
-                                            let answer:u64 = rng.random_range(1..=max_int);
-                                            state.push_message_output(format!("Answer : {}", answer));
-                                        }
-                                        Err(error) => {
-                                            state.push_message_output(format!("ERROR: {}", error));
+                                if let Some(input_min) = prompt_user_input(&mut terminal, &mut state, Some(String::from("Enter minimum number of range"))) {
+                                    if let Some(input_max) = prompt_user_input(&mut terminal, &mut state, Some(String::from("Enter maximum number of range"))) {
+
+                                        match (input_min.trim().parse::<u64>(), input_max.trim().parse::<u64>()) {
+                                            (Ok(min_int), Ok(max_int)) => {
+                                                if min_int < max_int {
+                                                    let answer = rng.random_range(min_int..max_int);
+                                                    state.push_message_output(format!("{}", answer));
+                                                } 
+                                                else if min_int == max_int {
+                                                    state.push_message_output(String::from("ERROR: Minimum and maximum range values cannot be the same"));
+                                                }
+                                                else if min_int > max_int {
+                                                    state.push_message_output(String::from("ERROR: Minimum range value cannot be larger than maximum range value"));
+                                                }
+                                                
+                                            },
+                                            (min_result, max_result) => {
+                                                let mut errors = Vec::new();
+
+                                                if let Err(e) = min_result {
+                                                    errors.push(format!("min : {}", e));
+                                                }
+                                                if let Err(e) = max_result {
+                                                    errors.push(format!("max : {}", e));
+                                                }
+                                            }
                                         }
                                     }
                                 }
