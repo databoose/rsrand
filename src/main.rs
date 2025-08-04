@@ -9,7 +9,7 @@ use ratatui::{
     Frame
 };
 use rand_chacha::ChaCha20Rng; // 20 round chacha, CSPRNG
-use std::{thread::{self}, time};
+use std::{fmt::format, thread::{self}, time};
 use rand::{prelude::*};
 
 const UPDATE_RATE_MILLIS: u64 = 90;
@@ -48,6 +48,7 @@ impl Drop for InputLabelGuard {
 struct State {
     menu_items: Vec<String>,
     selected_index: usize,
+    result_index: usize,
     input_mode: Option<usize>,
     input_string: String,
     input_label_text: String,
@@ -64,6 +65,7 @@ impl State {
                 String::from("Range Randomization")
             ],
             selected_index: 0,
+            result_index: 0,
             input_mode: None,
             input_string: String::new(),
             input_label_text: String::from("Input"), // Shows prompt dialog labeled with "input" by default
@@ -91,7 +93,8 @@ impl State {
         if self.output_widget_messages.len() > 17 {
             self.output_widget_messages.clear();
         }
-        self.output_widget_messages.push(msg);
+        self.result_index = self.result_index + 1;
+        self.output_widget_messages.push(format!("[{:?}] {}", self.result_index, msg));
     }
 }
 
@@ -144,7 +147,6 @@ fn main() {
         thread::sleep(time::Duration::from_millis(UPDATE_RATE_MILLIS));
 
         if state.input_mode.is_none() {
-            // only process menu navigation keys when not in input mode
             if let Event::Key(key) = event::read().expect("failed to read event") {
                 match key.code {
                     KeyCode::Char('q') => break,
