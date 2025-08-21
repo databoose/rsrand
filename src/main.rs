@@ -9,10 +9,14 @@ use ratatui::{
     Frame
 };
 use rand_chacha::ChaCha20Rng; // 20 round chacha, CSPRNG
-use std::{fmt::format, thread::{self}, time};
+use std::{thread::{self}, time};
 use rand::{prelude::*};
 
 const UPDATE_RATE_MILLIS: u64 = 90;
+// TODO IDEAS :
+
+// "headless" non-TUI mode, with passable args but menu by default or something
+// proper output window scrolling
 
 struct InputLabelGuard {
     original_label: Option<String>,
@@ -49,7 +53,7 @@ struct State {
     menu_items: Vec<String>,
     selected_index: usize,
     result_index: usize,
-    input_mode: Option<usize>,
+    input_mode: bool,
     input_string: String,
     input_label_text: String,
     output_widget_messages: Vec<String>,
@@ -66,7 +70,7 @@ impl State {
             ],
             selected_index: 0,
             result_index: 0,
-            input_mode: None,
+            input_mode: false,
             input_string: String::new(),
             input_label_text: String::from("Input"), // Shows prompt dialog labeled with "input" by default
             output_widget_messages: Vec::new(),
@@ -100,7 +104,8 @@ impl State {
 
 fn prompt_user_input(terminal: &mut ratatui::Terminal<ratatui::backend::CrosstermBackend<std::io::Stdout>>, state: &mut State, input_label: Option<String>) -> Option<String> {
     state.input_string.clear();
-    state.input_mode = Some(state.selected_index);
+    state.input_mode = true;
+    // set input mode so when we draw in this upcoming loop, it draws input box
 
     let _guard = InputLabelGuard::new(state, input_label);
     loop {
@@ -119,13 +124,13 @@ fn prompt_user_input(terminal: &mut ratatui::Terminal<ratatui::backend::Crosster
 
                 KeyCode::Enter => {
                     let result = state.input_string.clone();
-                    state.input_mode = None;
+                    state.input_mode = false;
                     state.input_string.clear();
                     _guard.restore(state);
                     return Some(result);
                 }
                 KeyCode::Esc => {
-                    state.input_mode = None;
+                    state.input_mode = false;
                     state.input_string.clear();
                     _guard.restore(state);
                     return None;
@@ -146,7 +151,7 @@ fn main() {
         terminal.draw(|frame| draw(frame, &state)).expect("failed to draw frame");
         thread::sleep(time::Duration::from_millis(UPDATE_RATE_MILLIS));
 
-        if state.input_mode.is_none() {
+        if state.input_mode == false {
             if let Event::Key(key) = event::read().expect("failed to read event") {
                 match key.code {
                     KeyCode::Char('q') => break,
@@ -224,7 +229,6 @@ fn main() {
                                             
                                             for i in 0..(password_parts.len() - 1) {
                                                // using modulo to cycle through seperators
-                                               // state.push_message_output(i.to_string());
                                                password_parts.insert(i * 2 + 1, separators[sep_indices[i % separators.len()]].to_string());
                                             }
                                             
@@ -242,9 +246,7 @@ fn main() {
                                             }
                                             
                                             let generated_password = password_parts.join("");
-                                            state.push_message_output(format!("password: {}", generated_password));
-                                            //state.push_message_output(format!("length: {} characters", generated_password.len()));
-                                        }
+                                            state.push_message_output(format!("password: {}", generated_password));                                        }
                                         Err(error) => {
                                             state.push_message_output(format!("ERROR: {}", error));
                                         }
@@ -325,7 +327,7 @@ fn draw(frame: &mut Frame, state: &State) {
         .block(menu_block)
         .alignment(Alignment::Center);
 
-    if state.input_mode.is_some() {
+    if state.input_mode == true {
         let input_layout = Layout::default()
             .direction(Direction::Vertical)
             .constraints(vec![
