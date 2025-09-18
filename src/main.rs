@@ -29,7 +29,7 @@ impl InputLabelGuard {
         if let Some(label) = new_label {
             state.input_label_text = label;
         }
-        
+
         InputLabelGuard {
             original_label: Some(original_label)
         }
@@ -179,59 +179,57 @@ fn main() {
                             }
                             2 => { // memorable password generator
                                 let words = vec![
-                                    "apple", "brave", "chair", "dance", "eagle", "flame", "grape", "house", "igloo", "juice", "sock", "broad", "mason",
+                                    "apple", "yoke", "brave", "chair", "dance", "eagle", "flame", "grape", "house", "igloo", "juice", "sock", "broad", "mason",
                                     "knife", "lemon", "magic", "night", "ocean", "piano", "queen", "river", "storm", "tiger", "missile", "jar", "smoke", "triple",
                                     "uncle", "voice", "water", "xenon", "yacht", "zebra", "amber", "blaze", "crane", "drift", "talk", "walk", "sift", "seek",
                                     "ember", "frost", "glory", "haven", "ivory", "jewel", "karma", "light", "misty", "noble", "bom", "rock", "tar", "work",
-                                    "onyx", "pearl", "quill", "radiant", "solar", "thunder", "ultra", "velvet", "whisper", "cobble", "sort", "whistle", "save"
+                                    "onyx", "pearl", "quill", "radiant", "solar", "thunder", "ultra", "velvet", "whisper", "cobble", "sort", "whistle", "save",
+                                    "cat", "surge", "symbol", "ricket", "tumble", "diamond", "simple", "catch", "boat", "west", "rookie", "pop", "mountain",
+                                    "mostly", "sweep", "dog", "boston", "tree", "phone", "eletric", "boast", "sink", "tort", "mix", "concrete", "signature", "lost"
                                 ];
-                                
+
                                 let separators = vec!['!', '@', '#', '$', '%', '&', '*', '=', '.', '/', '-'];
                                 let numbers = vec!['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
-                                
+
                                 if let Some(input) = prompt_user_input(&mut terminal, &mut state, Some(String::from("Enter complexity level (1-4)"))) {
                                     match input.trim().parse::<usize>() {
                                         Ok(level) => {
-                                            let level = level.clamp(1, 4);
                                             let mut password_parts = Vec::new();
-                                            
+
                                             // select amount of random words based on complexity
                                             let num_words = match level {
                                                 1 => 2,
                                                 2 => 3,
                                                 3 => 4,
                                                 4 => 5,
-                                                _ => 6,
+                                                _ => 5,
                                             };
-                                            
+
                                             let mut word_indices: Vec<usize> = (0..words.len()).collect();
                                             word_indices.shuffle(&mut rng);
-                                            
+
                                             for i in 0..num_words {
                                                 let mut word = words[word_indices[i]].to_string();
-                                                // randomly capitalize some letters for additional complexity
-                                                if level > 1 && rng.random_bool(0.3) {
-                                                    let char_idx = rng.random_range(0..word.len());
+                                                // randomly capitalize some words for additional complexity
+                                                if rng.random_bool(0.5) {
                                                     let mut chars: Vec<char> = word.chars().collect();
-                                                    if char_idx < chars.len() {
-                                                        if chars[char_idx] == 'i' || chars[char_idx] == 'l' {
-                                                            continue; // dont captialize "i" or "l" because they are difficult to distinguish, reduces entropy a little
-                                                        }
-                                                        chars[char_idx] = chars[char_idx].to_ascii_uppercase();
-                                                        word = chars.into_iter().collect();
+                                                    if chars[0] == 'i' || chars[0] == 'l' {
+                                                        continue; // dont captialize "i" or "l" because they are difficult to distinguish in some fonts, reduces entropy a little
                                                     }
+                                                    chars[0] = chars[0].to_ascii_uppercase();
+                                                    word = chars.into_iter().collect();
                                                 }
                                                 password_parts.push(word);
                                             }
 
                                             let mut sep_indices: Vec<usize> = (0..separators.len()).collect();
                                             sep_indices.shuffle(&mut rng);
-                                            
+
                                             for i in 0..(password_parts.len() - 1) {
                                                // using modulo to cycle through seperators
                                                password_parts.insert(i * 2 + 1, separators[sep_indices[i % separators.len()]].to_string());
                                             }
-                                            
+
                                             if level >= 2 {
                                                 let num_count = match level {
                                                     2 => 1,
@@ -244,7 +242,7 @@ fn main() {
                                                     password_parts.insert(pos, numbers[num_idx].to_string());
                                                 }
                                             }
-                                            
+
                                             let generated_password = password_parts.join("");
                                             state.push_message_output(format!("password: {}", generated_password));                                        }
                                         Err(error) => {
@@ -264,14 +262,14 @@ fn main() {
                                                 if min_int < max_int {
                                                     let answer = rng.random_range(min_int..max_int);
                                                     state.push_message_output(format!("{}", answer));
-                                                } 
+                                                }
                                                 else if min_int == max_int {
                                                     state.push_message_output(String::from("ERROR: Minimum and maximum range values cannot be the same"));
                                                 }
                                                 else if min_int > max_int {
                                                     state.push_message_output(String::from("ERROR: Minimum range value cannot be larger than maximum range value"));
                                                 }
-                                                
+
                                             },
                                             (min_result, max_result) => {
                                                 let mut errors = Vec::new();
