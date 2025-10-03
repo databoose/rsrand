@@ -12,6 +12,8 @@ use rand_chacha::ChaCha20Rng; // 20 round chacha, CSPRNG
 use std::{thread::{self}, time};
 use rand::{prelude::*};
 
+mod words;
+
 const UPDATE_RATE_MILLIS: u64 = 90;
 // TODO IDEAS :
 
@@ -178,16 +180,6 @@ fn main() {
                                 }
                             }
                             2 => { // memorable password generator
-                                let words = vec![
-                                    "apple", "yoke", "brave", "chair", "dance", "eagle", "flame", "grape", "house", "igloo", "juice", "sock", "broad", "mason",
-                                    "knife", "lemon", "magic", "night", "ocean", "piano", "queen", "river", "storm", "tiger", "missile", "jar", "smoke", "triple",
-                                    "uncle", "voice", "water", "xenon", "yacht", "zebra", "amber", "blaze", "crane", "drift", "talk", "walk", "sift", "seek",
-                                    "ember", "frost", "glory", "haven", "ivory", "jewel", "karma", "light", "misty", "noble", "bom", "rock", "tar", "work",
-                                    "onyx", "pearl", "quill", "radiant", "solar", "thunder", "ultra", "velvet", "whisper", "cobble", "sort", "whistle", "save",
-                                    "cat", "surge", "symbol", "ricket", "tumble", "diamond", "simple", "catch", "boat", "west", "rookie", "pop", "mountain",
-                                    "mostly", "sweep", "dog", "boston", "tree", "phone", "eletric", "boast", "sink", "tort", "mix", "concrete", "signature", "lost"
-                                ];
-
                                 let separators = vec!['!', '@', '#', '$', '%', '&', '*', '=', '.', '/', '-'];
                                 let numbers = vec!['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
 
@@ -205,11 +197,11 @@ fn main() {
                                                 _ => 5,
                                             };
 
-                                            let mut word_indices: Vec<usize> = (0..words.len()).collect();
+                                            let mut word_indices: Vec<usize> = (0..words::wordlist.len()).collect();
                                             word_indices.shuffle(&mut rng);
 
                                             for i in 0..num_words {
-                                                let mut word = words[word_indices[i]].to_string();
+                                                let mut word = words::wordlist[word_indices[i]].to_string();
                                                 // randomly capitalize some words for additional complexity
                                                 if rng.random_bool(0.5) {
                                                     let mut chars: Vec<char> = word.chars().collect();
